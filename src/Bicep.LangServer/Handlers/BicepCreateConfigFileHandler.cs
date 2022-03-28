@@ -34,7 +34,7 @@ namespace Bicep.LanguageServer.Handlers
 
         public Task<bool> Handle(BicepCreateConfigParams request, CancellationToken cancellationToken)
         {
-            throw new Exception($"request.DestinationPath?.ToUri().AbsolutePath: {request.DestinationPath?.ToUri().AbsolutePath}");
+            throw new Exception($"request.DestinationPath?.ToUnencodedString(): {request.DestinationPath?.ToUnencodedString()}");
         }
     }
 }
