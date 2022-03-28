@@ -49,7 +49,7 @@ jobs:
 
 
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
           submodules: true
@@ -121,13 +121,13 @@ jobs:
           configuration: 'release'
     
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
           submodules: true
 
       - name: Setup Node.js
-        uses: actions/setup-node@v2.5.1
+        uses: actions/setup-node@v3
         with:
           node-version: 14.x
 
@@ -140,6 +140,7 @@ jobs:
       - name: Make Bicep CLI executable
         if: ${{ matrix.rid != 'win-x64' }}
         run: chmod +x ./src/Bicep.Cli.E2eTests/src/temp/bicep-cli/bicep
+
 
 
 
@@ -167,13 +168,13 @@ jobs:
           rid: 'osx-x64'
 
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
           submodules: true
 
       - name: Setup Node.js
-        uses: actions/setup-node@v2.5.1
+        uses: actions/setup-node@v3
         with:
           node-version: 12.x
 
@@ -241,4 +242,3 @@ jobs:
           name: vscode-bicep.vsix
           path: ./src/vscode-bicep/vscode-bicep.vsix
           if-no-files-found: error
-

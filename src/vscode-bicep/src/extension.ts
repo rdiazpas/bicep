@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 import vscode from "vscode";
-
+import { BicepVisualizerViewManager } from "./visualizer";
+import { createAzExtOutputChannel } from "./utils/AzExtOutputChannel";
+import { OutputChannelManager } from "./utils/OutputChannelManager";
 import { registerAzureUtilsExtensionVariables } from "@microsoft/vscode-azext-azureutils";
-import {
-  createAzExtOutputChannel,
-  registerUIExtensionVariables,
-} from "@microsoft/vscode-azext-utils";
+import { registerUIExtensionVariables } from "@microsoft/vscode-azext-utils";
+import { TreeManager } from "./tree/TreeManager";
 
 import {
   BuildCommand,
@@ -21,7 +21,6 @@ import {
   BicepCacheContentProvider,
   launchLanguageServiceWithProgressReport,
 } from "./language";
-import { TreeManager } from "./tree/TreeManager";
 import {
   activateWithTelemetryAndErrorHandling,
   createLogger,
@@ -29,8 +28,6 @@ import {
   resetLogger,
 } from "./utils";
 import { CreateBicepConfigurationFile } from "./commands/createConfigurationFile";
-import { OutputChannelManager } from "./utils/OutputChannelManager";
-import { BicepVisualizerViewManager } from "./visualizer";
 
 class BicepExtension extends Disposable {
   private constructor(public readonly extensionUri: vscode.Uri) {
