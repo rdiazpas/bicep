@@ -32,18 +32,9 @@ namespace Bicep.LanguageServer.Handlers
             this.logger = logger;
         }
 
-        public async Task<bool> Handle(BicepCreateConfigParams request, CancellationToken cancellationToken)
+        public Task<bool> Handle(BicepCreateConfigParams request, CancellationToken cancellationToken)
         {
-            string? destinationPath = request.DestinationPath?.GetFileSystemPath();
-            if (destinationPath is null)
-            {
-                throw new ArgumentException($"{nameof(destinationPath)} should not be null");
-            }
-
-            this.logger.LogTrace($"Writing new configuration file to {destinationPath}");
-            string defaultBicepConfig = DefaultBicepConfigHelper.GetDefaultBicepConfig();
-            await File.WriteAllTextAsync(destinationPath, defaultBicepConfig);
-            return true;
+            throw new Exception($"request.DestinationPath?.ToUri().AbsolutePath: {request.DestinationPath?.ToUri().AbsolutePath}");
         }
     }
 }
