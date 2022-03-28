@@ -108,8 +108,8 @@ export class CreateBicepConfigurationFile implements Command {
       console.log(`asdfg0`);
     }
 
-    //asdfg dies before here
     console.log(`asdfg1`);
+    //asdfg dies after here
     await this.client.sendRequest(createBicepConfigRequestType, {
       destinationPath: selectedPath,
     });
