@@ -28,6 +28,7 @@ describe("bicep.createConfigFile", (): void => {
       let newConfigPath = await executeCreateConfigFileCommand(
         Uri.file(fakeBicepPath)
       );
+      //asdfg dying before reaching here
       console.log(`newConfigPath: ${newConfigPath}`);
 
       if (!newConfigPath) {

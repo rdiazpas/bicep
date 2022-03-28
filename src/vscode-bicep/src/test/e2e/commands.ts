@@ -60,13 +60,13 @@ export async function executeBuildCommand(
 export async function executeCreateConfigFileCommand(
   documentUri?: vscode.Uri
 ): Promise<string | undefined> {
-  //getLogger().debug(`asdfg10`);
+  console.log(`executeCreateConfigFileCommand: ${documentUri?.fsPath}`);
   const a = await vscode.commands.executeCommand<string>(
     "bicep.createConfigFile",
     documentUri,
     true, // suppressQuery
     true // rethrow
   );
-  //getLogger().debug(`asdfg11: ${a}`);
+  console.log(`executeCreateConfigFileCommand returns: ${a}`);
   return a;
 }

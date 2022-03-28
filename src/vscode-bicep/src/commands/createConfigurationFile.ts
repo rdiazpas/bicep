@@ -23,7 +23,7 @@ const bicepConfig = "bicepconfig.json";
 export class CreateBicepConfigurationFile implements Command {
   public readonly id = "bicep.createConfigFile";
 
-  public constructor(private readonly client: LanguageClient) {}
+  public constructor(private readonly client: LanguageClient) { }
 
   public async execute(
     _context: IActionContext,
@@ -31,13 +31,15 @@ export class CreateBicepConfigurationFile implements Command {
     suppressQuery?: boolean, // If true, the recommended location is used without querying user (for testing)
     rethrow?: boolean // (for testing)
   ): Promise<string | undefined> {
-    console.log(`asdfg20: ${Uri.toString()}`);
+    console.log(`asdfg20: ${documentUri?.toString()}`);
+    console.log(`asdfg20: ${documentUri?.fsPath}`);
     console.log("console.log");
 
     _context.errorHandling.rethrow = !!rethrow;
 
     documentUri ??= window.activeTextEditor?.document.uri;
     console.log(`asdfg21: ${String(documentUri?.toString())}`);
+    console.log(`asdfg21: ${String(documentUri?.fsPath)}`);
 
     const recommendation: BicepGetRecommendedConfigLocationResult =
       await this.client.sendRequest(getRecommendedConfigLocationRequestType, {
@@ -45,8 +47,7 @@ export class CreateBicepConfigurationFile implements Command {
       });
     if (recommendation.error || !recommendation.recommendedFolder) {
       throw new Error(
-        `Could not determine recommended configuration location: ${
-          recommendation.error ?? "Unknown"
+        `Could not determine recommended configuration location: ${recommendation.error ?? "Unknown"
         }`
       );
     }
@@ -82,31 +83,32 @@ export class CreateBicepConfigurationFile implements Command {
         }
       }
     }
+    //asdfg good to here
     console.log(`asdfg24: ${selectedPath}`);
 
-    // eslint-disable-next-line no-debugger
-    debugger;
     console.log(`selectedPath: ${selectedPath}`);
     let p = selectedPath;
     while (path.dirname(p) !== p) {
       try {
         console.log(`${p}:`);
       } catch (err) {
-        getLogger().error(parseError(err).message);
+        console.log(parseError(err).message);
       }
       try {
         console.log(`  exists: ${fse.existsSync(p)}`);
       } catch (err) {
-        getLogger().error(parseError(err).message);
+        console.log(parseError(err).message);
       }
       try {
         console.log(`  dir: ${fse.readdirSync(p).join(" | ")}`);
       } catch (err) {
-        getLogger().error(parseError(err).message);
+        console.log(parseError(err).message);
       }
       p = path.dirname(p);
+      console.log(`asdfg0`);
     }
 
+    //asdfg dies before here
     console.log(`asdfg1`);
     await this.client.sendRequest(createBicepConfigRequestType, {
       destinationPath: selectedPath,
@@ -127,6 +129,5 @@ export class CreateBicepConfigurationFile implements Command {
       );
     }
 
-    console.log(`asdfg7`);
   }
 }
