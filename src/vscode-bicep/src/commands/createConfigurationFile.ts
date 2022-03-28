@@ -22,7 +22,7 @@ const bicepConfig = "bicepconfig.json";
 export class CreateBicepConfigurationFile implements Command {
   public readonly id = "bicep.createConfigFile";
 
-  public constructor(private readonly client: LanguageClient) { }
+  public constructor(private readonly client: LanguageClient) {}
 
   public async execute(
     _context: IActionContext,
@@ -46,7 +46,8 @@ export class CreateBicepConfigurationFile implements Command {
       });
     if (recommendation.error || !recommendation.recommendedFolder) {
       throw new Error(
-        `Could not determine recommended configuration location: ${recommendation.error ?? "Unknown"
+        `Could not determine recommended configuration location: ${
+          recommendation.error ?? "Unknown"
         }`
       );
     }
@@ -127,6 +128,5 @@ export class CreateBicepConfigurationFile implements Command {
         "Configuration file was not created by the language server"
       );
     }
-
   }
 }
