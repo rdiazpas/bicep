@@ -16,7 +16,6 @@ import {
   createBicepConfigRequestType,
   getRecommendedConfigLocationRequestType,
 } from "../language/protocol";
-import { getLogger } from "../utils/logger";
 
 const bicepConfig = "bicepconfig.json";
 
