@@ -31,21 +31,13 @@ export class CreateBicepConfigurationFile implements Command {
     suppressQuery?: boolean, // If true, the recommended location is used without querying user (for testing)
     rethrow?: boolean // (for testing)
   ): Promise<string | undefined> {
-    getLogger().debug(`asdfg20: ${Uri.toString()}`);
-
-    // eslint-disable-next-line no-debugger
-    debugger;
-    console.warn("console.warn");
-    console.error("console.error");
+    console.log(`asdfg20: ${Uri.toString()}`);
     console.log("console.log");
-    getLogger().debug("getLogger().debug()");
-    getLogger().warn("getLogger().warn()");
-    getLogger().error("getLogger().error()");
 
     _context.errorHandling.rethrow = !!rethrow;
 
     documentUri ??= window.activeTextEditor?.document.uri;
-    getLogger().debug(`asdfg21: ${String(documentUri?.toString())}`);
+    console.log(`asdfg21: ${String(documentUri?.toString())}`);
 
     const recommendation: BicepGetRecommendedConfigLocationResult =
       await this.client.sendRequest(getRecommendedConfigLocationRequestType, {
@@ -58,13 +50,13 @@ export class CreateBicepConfigurationFile implements Command {
         }`
       );
     }
-    getLogger().debug(`asdfg22: ${recommendation.recommendedFolder}`);
+    console.log(`asdfg22: ${recommendation.recommendedFolder}`);
 
     let selectedPath: string = path.join(
       recommendation.recommendedFolder,
       bicepConfig
     );
-    getLogger().debug(`asdfg23: ${selectedPath}`);
+    console.log(`asdfg23: ${selectedPath}`);
     if (!suppressQuery) {
       // eslint-disable-next-line no-constant-condition
       while (true) {
@@ -90,51 +82,51 @@ export class CreateBicepConfigurationFile implements Command {
         }
       }
     }
-    getLogger().debug(`asdfg24: ${selectedPath}`);
+    console.log(`asdfg24: ${selectedPath}`);
 
     // eslint-disable-next-line no-debugger
     debugger;
-    getLogger().debug(`selectedPath: ${selectedPath}`);
+    console.log(`selectedPath: ${selectedPath}`);
     let p = selectedPath;
     while (path.dirname(p) !== p) {
       try {
-        getLogger().debug(`${p}:`);
+        console.log(`${p}:`);
       } catch (err) {
         getLogger().error(parseError(err).message);
       }
       try {
-        getLogger().debug(`  exists: ${fse.existsSync(p)}`);
+        console.log(`  exists: ${fse.existsSync(p)}`);
       } catch (err) {
         getLogger().error(parseError(err).message);
       }
       try {
-        getLogger().debug(`  dir: ${fse.readdirSync(p).join(" | ")}`);
+        console.log(`  dir: ${fse.readdirSync(p).join(" | ")}`);
       } catch (err) {
         getLogger().error(parseError(err).message);
       }
       p = path.dirname(p);
     }
 
-    getLogger().debug(`asdfg1`);
+    console.log(`asdfg1`);
     await this.client.sendRequest(createBicepConfigRequestType, {
       destinationPath: selectedPath,
     });
-    getLogger().debug(`asdfg2`);
+    console.log(`asdfg2`);
 
     if (await fse.pathExists(selectedPath)) {
-      getLogger().debug(`asdfg3`);
+      console.log(`asdfg3`);
       const textDocument = await workspace.openTextDocument(selectedPath);
-      getLogger().debug(`asdfg4`);
+      console.log(`asdfg4`);
       await window.showTextDocument(textDocument);
-      getLogger().debug(`asdfg5`);
+      console.log(`asdfg5`);
       return selectedPath;
     } else {
-      getLogger().debug(`asdfg6`);
+      console.log(`asdfg6`);
       throw new Error(
         "Configuration file was not created by the language server"
       );
     }
 
-    getLogger().debug(`asdfg7`);
+    console.log(`asdfg7`);
   }
 }

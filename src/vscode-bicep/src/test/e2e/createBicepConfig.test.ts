@@ -19,13 +19,16 @@ describe("bicep.createConfigFile", (): void => {
 
   it("should create valid config file and open it", async () => {
     // eslint-disable-next-line no-debugger
-    debugger;
     const tempFolder = createUniqueTempFolder("createBicepConfigTest-");
+    console.log(`tempFolder 2: ${tempFolder}`);
+
     const fakeBicepPath = path.join(tempFolder, "main.bicep");
+    console.log(`fakeBicepPath: ${fakeBicepPath}`);
     try {
       let newConfigPath = await executeCreateConfigFileCommand(
         Uri.file(fakeBicepPath)
       );
+      console.log(`newConfigPath: ${newConfigPath}`);
 
       if (!newConfigPath) {
         throw new Error(
@@ -89,14 +92,27 @@ function createUniqueTempFolder(filenamePrefix: string): string {
   // eslint-disable-next-line no-debugger
   debugger;
   const tempFolder = os.tmpdir();
+  console.log(`tempFolder: ${tempFolder}`);
+  console.log(`fse.existsSync(${tempFolder}): ${fse.existsSync(tempFolder)}`);
   if (!fse.existsSync(tempFolder)) {
+    console.log(`mkdirSync ${tempFolder}`);
     fse.mkdirSync(tempFolder, { recursive: true });
   }
+  console.log(`fse.existsSync(${tempFolder}): ${fse.existsSync(tempFolder)}`);
 
   const tempSubfolder = fse.mkdtempSync(path.join(tempFolder, filenamePrefix));
+  console.log(`tempSubfolder: ${tempSubfolder}`);
+  console.log(
+    `fse.existsSync(${tempSubfolder}): ${fse.existsSync(tempSubfolder)}`
+  );
+
   if (!fse.existsSync(tempSubfolder)) {
+    console.log("mkdirsync");
     fse.mkdirSync(tempSubfolder, { recursive: true });
   }
+  console.log(
+    `fse.existsSync(${tempSubfolder}): ${fse.existsSync(tempSubfolder)}`
+  );
 
   return tempSubfolder;
 }
