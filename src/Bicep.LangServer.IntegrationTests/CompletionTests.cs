@@ -24,6 +24,7 @@ using Bicep.Core.UnitTests.Assertions;
 using Bicep.Core.UnitTests.Utils;
 using Bicep.Core.Workspaces;
 using Bicep.LangServer.IntegrationTests.Completions;
+using Bicep.LangServer.IntegrationTests.Helpers;
 using Bicep.LanguageServer.Extensions;
 using Bicep.LanguageServer.Utils;
 using FluentAssertions;
@@ -175,6 +176,24 @@ namespace Bicep.LangServer.IntegrationTests
             return completion.TextEdit.TextEdit.NewText;
         }
 
+        [ClassInitialize]
+        public static async Task ClassInitialize(TestContext testContext)
+        {
+            var uri = DocumentUri.From("untitled://untitled.bicep");
+            var helper = await LanguageServerHelper.StartServerWithClientConnectionAsync(
+                testContext,
+                onClientOptions:,
+                creationOptions: new LanguageServer.Server.CreationOptions(NamespaceProvider: NamespaceProvider, FileResolver: BicepTestConstants.FileResolver))
+            var helper = await LanguageServerHelper.StartServerWithTextAsync(testContext, string.Empty, uri, creationOptions: );
+            LanguageServerLifecycle.Register<CompletionTests>(helper);
+        }
+
+        [ClassCleanup]
+        public static void ClassCleanup()
+        {
+            LanguageServerLifecycle.Unregister<CompletionTests>();
+        }
+
         [DataTestMethod]
         [DynamicData(nameof(GetData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(GetDisplayName))]
         [TestCategory(BaselineHelper.BaselineTestCategory)]
@@ -187,8 +206,10 @@ namespace Bicep.LangServer.IntegrationTests
 
             var uri = DocumentUri.FromFileSystemPath(entryPoint);
 
-            using var helper = await LanguageServerHelper.StartServerWithTextAsync(this.TestContext, dataSet.Bicep, uri, creationOptions: new LanguageServer.Server.CreationOptions(NamespaceProvider: NamespaceProvider, FileResolver: BicepTestConstants.FileResolver));
+            //using var helper = await LanguageServerHelper.StartServerWithTextAsync(this.TestContext, dataSet.Bicep, uri, creationOptions: new LanguageServer.Server.CreationOptions(NamespaceProvider: NamespaceProvider, FileResolver: BicepTestConstants.FileResolver));
+            var helper = LanguageServerLifecycle.Get<CompletionTests>();
             var client = helper.Client;
+            await LanguageServerHelper.OpenFileAndWait(this.TestContext, client, dataSet.Bicep, uri);
 
             var intermediate = new List<(Position position, JToken actual)>();
 
