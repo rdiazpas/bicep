@@ -110,18 +110,6 @@ namespace Bicep.LangServer.IntegrationTests
             return helper;
         }
 
-        public static async Task OpenFileAndWait(TestContext testContext, ILanguageClient client, string text, DocumentUri documentUri)
-        {
-            var diagnosticsPublished = new TaskCompletionSource<PublishDiagnosticsParams>();
-
-            client.DidOpenTextDocument(TextDocumentParamHelper.CreateDidOpenDocumentParams(documentUri, text, 0));
-            testContext.WriteLine($"Opened file {documentUri}.");
-
-            // notifications don't produce responses,
-            // but our server should send us diagnostics when it receives the notification
-            await IntegrationTestHelper.WithTimeoutAsync(diagnosticsPublished.Task);
-        }
-
         public void Dispose()
         {
             Server.Dispose();
