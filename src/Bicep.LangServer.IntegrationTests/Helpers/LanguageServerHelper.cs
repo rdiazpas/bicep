@@ -22,7 +22,7 @@ using Bicep.Core.UnitTests;
 
 namespace Bicep.LangServer.IntegrationTests
 {
-    public class LanguageServerHelper : IDisposable
+    public sealed class LanguageServerHelper : IDisposable
     {
         public static readonly ISnippetsProvider SnippetsProvider = new SnippetsProvider(BicepTestConstants.Features, TestTypeHelper.CreateEmptyProvider(), BicepTestConstants.FileResolver, BicepTestConstants.ConfigurationManager);
 
@@ -127,8 +127,8 @@ namespace Bicep.LangServer.IntegrationTests
 
         public void Dispose()
         {
-            Server.Dispose();
-            Client.Dispose();
+            this.Server.Dispose();
+            this.Client.Dispose();
         }
     }
 }

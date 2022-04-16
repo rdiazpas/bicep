@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -42,7 +41,6 @@ using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 namespace Bicep.LangServer.IntegrationTests
 {
     [TestClass]
-    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Test methods do not need to follow this convention.")]
     public class CompletionTests
     {
         public static readonly INamespaceProvider NamespaceProvider = BicepTestConstants.NamespaceProvider;
@@ -177,48 +175,20 @@ namespace Bicep.LangServer.IntegrationTests
             return completion.TextEdit.TextEdit.NewText;
         }
 
-        private static readonly ConcurrentDictionary<DocumentUri, TaskCompletionSource<PublishDiagnosticsParams>> stuff = new();
-
         [ClassInitialize]
         public static async Task ClassInitialize(TestContext testContext)
         {
-            stuff.Clear();
-
-            var helper = await LanguageServerHelper.StartServerWithClientConnectionAsync(
+            var helper = await MultiFileLanguageServerHelper.StartLanguageServer(
                 testContext,
-                onClientOptions: options =>
-                {
-                    options.OnPublishDiagnostics(p =>
-                    {
-                        testContext.WriteLine($"Received {p.Diagnostics.Count()} diagnostic(s).");
-
-                        if(stuff.TryGetValue(p.Uri, out var completionSource))
-                        {
-                            completionSource.SetResult(p);
-                        }
-
-                        throw new AssertFailedException($"Completion source was not registered for document uri '{p.Uri}'.");
-                    });
-                },
                 creationOptions: new LanguageServer.Server.CreationOptions(NamespaceProvider: NamespaceProvider, FileResolver: BicepTestConstants.FileResolver));
+
             SharedLanguageHelperManager.Register<CompletionTests>(helper);
         }
 
         [ClassCleanup]
         public static void ClassCleanup()
         {
-            stuff.Clear();
             SharedLanguageHelperManager.Unregister<CompletionTests>();
-        }
-
-        private static async Task OpenFileAndWait(TestContext testContext, ILanguageClient client, string text, DocumentUri documentUri, TaskCompletionSource<PublishDiagnosticsParams> completionSource)
-        {
-            client.DidOpenTextDocument(TextDocumentParamHelper.CreateDidOpenDocumentParams(documentUri, text, 0));
-            testContext.WriteLine($"Opened file {documentUri}.");
-
-            // notifications don't produce responses,
-            // but our server should send us diagnostics when it receives the notification
-            await IntegrationTestHelper.WithTimeoutAsync(completionSource.Task);
         }
 
         [DataTestMethod]
@@ -233,20 +203,15 @@ namespace Bicep.LangServer.IntegrationTests
 
             var uri = DocumentUri.FromFileSystemPath(entryPoint);
 
-            //using var helper = await LanguageServerHelper.StartServerWithTextAsync(this.TestContext, dataSet.Bicep, uri, creationOptions: new LanguageServer.Server.CreationOptions(NamespaceProvider: NamespaceProvider, FileResolver: BicepTestConstants.FileResolver));
             var helper = SharedLanguageHelperManager.Get<CompletionTests>();
-            var client = helper.Client;
 
-            var completionSource = new TaskCompletionSource<PublishDiagnosticsParams>();
-            stuff.TryAdd(uri, completionSource).Should().BeTrue("because nothing should have registered a completion source for this test before it ran");
-
-            await OpenFileAndWait(this.TestContext, client, dataSet.Bicep, uri, completionSource);
+            await helper.OpenFileOnce(this.TestContext, dataSet.Bicep, uri);
 
             var intermediate = new List<(Position position, JToken actual)>();
 
             foreach (var position in positions)
             {
-                var actual = await GetActualCompletions(client, uri, position);
+                var actual = await GetActualCompletions(helper.Client, uri, position);
 
                 intermediate.Add((position, actual));
             }

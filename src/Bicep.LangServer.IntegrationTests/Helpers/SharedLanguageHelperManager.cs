@@ -12,13 +12,13 @@ namespace Bicep.LangServer.IntegrationTests.Helpers
 {
     public static class SharedLanguageHelperManager
     {
-        private static readonly ConcurrentDictionary<Assembly, ConcurrentDictionary<Type, LanguageServerHelper>> assemblies = new();
+        private static readonly ConcurrentDictionary<Assembly, ConcurrentDictionary<Type, MultiFileLanguageServerHelper>> assemblies = new();
 
-        private static readonly ConcurrentDictionary<Type, LanguageServerHelper> languageServers = new();
+        private static readonly ConcurrentDictionary<Type, MultiFileLanguageServerHelper> languageServers = new();
 
         public static void RegisterAssembly(Assembly assembly)
         {
-            if(assemblies.TryAdd(assembly, new ConcurrentDictionary<Type, LanguageServerHelper>()))
+            if(assemblies.TryAdd(assembly, new ConcurrentDictionary<Type, MultiFileLanguageServerHelper>()))
             {
                 return;
             }
@@ -42,7 +42,7 @@ namespace Bicep.LangServer.IntegrationTests.Helpers
             throw new AssertFailedException($"The assembly '{assembly.FullName}' was not registered. Call {nameof(RegisterAssembly)}() first.");
         }
 
-        public static void Register<T>(LanguageServerHelper helper) where T : class
+        public static void Register<T>(MultiFileLanguageServerHelper helper) where T : class
         {
             Type type = typeof(T);
             if (languageServers.TryAdd(type, helper))
@@ -66,7 +66,7 @@ namespace Bicep.LangServer.IntegrationTests.Helpers
             throw new AssertFailedException($"A language server was not registered for type '{type.FullName}'. Call {nameof(Register)}() first.");
         }
 
-        public static LanguageServerHelper Get<T>() where T : class
+        public static MultiFileLanguageServerHelper Get<T>() where T : class
         {
             Type type = typeof(T);
             if (languageServers.TryGetValue(type, out var languageServer))
