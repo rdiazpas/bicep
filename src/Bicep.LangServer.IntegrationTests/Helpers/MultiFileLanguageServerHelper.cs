@@ -30,7 +30,7 @@ namespace Bicep.LangServer.IntegrationTests
             this.Server = server;
             this.Client = client;
             this.notificationRouter = notificationRouter;
-}
+        }
 
         public static async Task<MultiFileLanguageServerHelper> StartLanguageServer(TestContext testContext, Server.CreationOptions creationOptions)
         {

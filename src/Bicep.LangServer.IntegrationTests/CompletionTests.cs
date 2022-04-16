@@ -58,6 +58,27 @@ namespace Bicep.LangServer.IntegrationTests
             return $"{info.Name}_{((DataSet)row[0]).Name}_{row[1]}";
         }
 
+        private enum ServerType
+        {
+            NamespacePlusTestResolver
+        }
+
+        [ClassInitialize]
+        public static void ClassInitialize(TestContext testContext)
+        {
+            SharedLanguageHelperManager<ServerType>.Register(
+                ServerType.NamespacePlusTestResolver,
+                async () => await MultiFileLanguageServerHelper.StartLanguageServer(
+                    testContext,
+                    creationOptions: new LanguageServer.Server.CreationOptions(NamespaceProvider: NamespaceProvider, FileResolver: BicepTestConstants.FileResolver)));
+        }
+
+        [ClassCleanup]
+        public static async Task ClassCleanup()
+        {
+            await SharedLanguageHelperManager<ServerType>.Unregister(ServerType.NamespacePlusTestResolver);
+        }
+
         [TestMethod]
         public async Task EmptyFileShouldProduceDeclarationCompletions()
         {
@@ -175,22 +196,6 @@ namespace Bicep.LangServer.IntegrationTests
             return completion.TextEdit.TextEdit.NewText;
         }
 
-        [ClassInitialize]
-        public static async Task ClassInitialize(TestContext testContext)
-        {
-            var helper = await MultiFileLanguageServerHelper.StartLanguageServer(
-                testContext,
-                creationOptions: new LanguageServer.Server.CreationOptions(NamespaceProvider: NamespaceProvider, FileResolver: BicepTestConstants.FileResolver));
-
-            SharedLanguageHelperManager.Register<CompletionTests>(helper);
-        }
-
-        [ClassCleanup]
-        public static void ClassCleanup()
-        {
-            SharedLanguageHelperManager.Unregister<CompletionTests>();
-        }
-
         [DataTestMethod]
         [DynamicData(nameof(GetData), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(GetDisplayName))]
         [TestCategory(BaselineHelper.BaselineTestCategory)]
@@ -203,7 +208,7 @@ namespace Bicep.LangServer.IntegrationTests
 
             var uri = DocumentUri.FromFileSystemPath(entryPoint);
 
-            var helper = SharedLanguageHelperManager.Get<CompletionTests>();
+            var helper = await SharedLanguageHelperManager<ServerType>.Get(ServerType.NamespacePlusTestResolver);
 
             await helper.OpenFileOnce(this.TestContext, dataSet.Bicep, uri);
 

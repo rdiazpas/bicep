@@ -1,80 +1,50 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using Bicep.Core.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Threading;
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
-using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Bicep.LangServer.IntegrationTests.Helpers
 {
-    public static class SharedLanguageHelperManager
+    public static class SharedLanguageHelperManager<T> where T : notnull
     {
-        private static readonly ConcurrentDictionary<Assembly, ConcurrentDictionary<Type, MultiFileLanguageServerHelper>> assemblies = new();
+        private static readonly ConcurrentDictionary<T, AsyncLazy<MultiFileLanguageServerHelper>> languageServers = new();
 
-        private static readonly ConcurrentDictionary<Type, MultiFileLanguageServerHelper> languageServers = new();
-
-        public static void RegisterAssembly(Assembly assembly)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "VSTHRD012:Provide JoinableTaskFactory where allowed", Justification = "<Pending>")]
+        public static void Register(T key, Func<Task<MultiFileLanguageServerHelper>> helperCreator)
         {
-            if(assemblies.TryAdd(assembly, new ConcurrentDictionary<Type, MultiFileLanguageServerHelper>()))
-            {
-                return;
-            }
-
-            throw new AssertFailedException($"The assembly '{assembly.FullName}' is already registered. Call {nameof(UnregisterAssembly)}() first.");
-        }
-
-        public static void UnregisterAssembly(Assembly assembly)
-        {
-            if (assemblies.TryRemove(assembly, out var servers))
-            {
-                // only enumerate the dictionary once because there can be race conditions
-                // if we have misbehaving test code
-                var remainingTypes = servers.Keys.Select(type => type.Name).ToList();
-                if (remainingTypes.Any())
-                {
-                    throw new AssertFailedException($"All types for assembly '{assembly.FullName}' have not been unregistered. The following types remain: {remainingTypes.ConcatString(", ")}");
-                }
-            }
-
-            throw new AssertFailedException($"The assembly '{assembly.FullName}' was not registered. Call {nameof(RegisterAssembly)}() first.");
-        }
-
-        public static void Register<T>(MultiFileLanguageServerHelper helper) where T : class
-        {
-            Type type = typeof(T);
-            if (languageServers.TryAdd(type, helper))
+            if (languageServers.TryAdd(key, new AsyncLazy<MultiFileLanguageServerHelper>(helperCreator)))
             {
                 return;
             }
 
             // if unique test classes are used as T, then there shouldn't be any contention on addition of items into the dictionary
-            throw new AssertFailedException($"A language server was already registered for type '{type.FullName}'. Call {nameof(Unregister)}() first or use unique a test class.");
+            throw new AssertFailedException($"A language server was already registered for key '{key}'. Call {nameof(Unregister)}() first or use unique a test class.");
         }
 
-        public static void Unregister<T>() where T : class
+        public static async Task Unregister(T key)
         {
-            Type type = typeof(T);
-            if (languageServers.TryRemove(type, out var languageServer))
+            if (languageServers.TryRemove(key, out var lazy))
             {
-                languageServer.Dispose();
+                (await lazy.GetValueAsync()).Dispose();
                 return;
             }
 
-            throw new AssertFailedException($"A language server was not registered for type '{type.FullName}'. Call {nameof(Register)}() first.");
+            throw new AssertFailedException($"A language server was not registered for key '{key}'. Call {nameof(Register)}() first.");
         }
 
-        public static MultiFileLanguageServerHelper Get<T>() where T : class
+        public static async Task<MultiFileLanguageServerHelper> Get(T key)
         {
             Type type = typeof(T);
-            if (languageServers.TryGetValue(type, out var languageServer))
+            if (languageServers.TryGetValue(key, out var lazy))
             {
-                return languageServer;
+                return (await lazy.GetValueAsync());
             }
 
-            throw new AssertFailedException($"A language server was not registered for type '{type.FullName}'. Call {nameof(Register)}() first.");
+            throw new AssertFailedException($"A language server was not registered for key '{key}'. Call {nameof(Register)}() first.");
         }
     }
 }
