@@ -201,14 +201,14 @@ namespace Bicep.LangServer.IntegrationTests
                     });
                 },
                 creationOptions: new LanguageServer.Server.CreationOptions(NamespaceProvider: NamespaceProvider, FileResolver: BicepTestConstants.FileResolver));
-            LanguageServerLifecycle.Register<CompletionTests>(helper);
+            SharedLanguageHelperManager.Register<CompletionTests>(helper);
         }
 
         [ClassCleanup]
         public static void ClassCleanup()
         {
             stuff.Clear();
-            LanguageServerLifecycle.Unregister<CompletionTests>();
+            SharedLanguageHelperManager.Unregister<CompletionTests>();
         }
 
         private static async Task OpenFileAndWait(TestContext testContext, ILanguageClient client, string text, DocumentUri documentUri, TaskCompletionSource<PublishDiagnosticsParams> completionSource)
@@ -234,7 +234,7 @@ namespace Bicep.LangServer.IntegrationTests
             var uri = DocumentUri.FromFileSystemPath(entryPoint);
 
             //using var helper = await LanguageServerHelper.StartServerWithTextAsync(this.TestContext, dataSet.Bicep, uri, creationOptions: new LanguageServer.Server.CreationOptions(NamespaceProvider: NamespaceProvider, FileResolver: BicepTestConstants.FileResolver));
-            var helper = LanguageServerLifecycle.Get<CompletionTests>();
+            var helper = SharedLanguageHelperManager.Get<CompletionTests>();
             var client = helper.Client;
 
             var completionSource = new TaskCompletionSource<PublishDiagnosticsParams>();

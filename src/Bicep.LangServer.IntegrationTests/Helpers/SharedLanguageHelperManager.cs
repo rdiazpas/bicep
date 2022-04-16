@@ -1,15 +1,46 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using Bicep.Core.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
+using System.Reflection;
 
 namespace Bicep.LangServer.IntegrationTests.Helpers
 {
-    public static class LanguageServerLifecycle
+    public static class SharedLanguageHelperManager
     {
+        private static readonly ConcurrentDictionary<Assembly, ConcurrentDictionary<Type, LanguageServerHelper>> assemblies = new();
+
         private static readonly ConcurrentDictionary<Type, LanguageServerHelper> languageServers = new();
+
+        public static void RegisterAssembly(Assembly assembly)
+        {
+            if(assemblies.TryAdd(assembly, new ConcurrentDictionary<Type, LanguageServerHelper>()))
+            {
+                return;
+            }
+
+            throw new AssertFailedException($"The assembly '{assembly.FullName}' is already registered. Call {nameof(UnregisterAssembly)}() first.");
+        }
+
+        public static void UnregisterAssembly(Assembly assembly)
+        {
+            if (assemblies.TryRemove(assembly, out var servers))
+            {
+                // only enumerate the dictionary once because there can be race conditions
+                // if we have misbehaving test code
+                var remainingTypes = servers.Keys.Select(type => type.Name).ToList();
+                if (remainingTypes.Any())
+                {
+                    throw new AssertFailedException($"All types for assembly '{assembly.FullName}' have not been unregistered. The following types remain: {remainingTypes.ConcatString(", ")}");
+                }
+            }
+
+            throw new AssertFailedException($"The assembly '{assembly.FullName}' was not registered. Call {nameof(RegisterAssembly)}() first.");
+        }
 
         public static void Register<T>(LanguageServerHelper helper) where T : class
         {
