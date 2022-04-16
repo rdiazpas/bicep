@@ -44,6 +44,8 @@ namespace Bicep.LangServer.IntegrationTests
     public class CompletionTests
     {
         public static readonly INamespaceProvider NamespaceProvider = BicepTestConstants.NamespaceProvider;
+        
+        private static readonly SharedLanguageHelperManager ServerWithNamespaceAndTestResolver = new();
 
         [NotNull]
         public TestContext? TestContext { get; set; }
@@ -66,8 +68,7 @@ namespace Bicep.LangServer.IntegrationTests
         [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
-            SharedLanguageHelperManager<ServerType>.Register(
-                ServerType.NamespacePlusTestResolver,
+            ServerWithNamespaceAndTestResolver.Initialize(
                 async () => await MultiFileLanguageServerHelper.StartLanguageServer(
                     testContext,
                     creationOptions: new LanguageServer.Server.CreationOptions(NamespaceProvider: NamespaceProvider, FileResolver: BicepTestConstants.FileResolver)));
@@ -76,7 +77,7 @@ namespace Bicep.LangServer.IntegrationTests
         [ClassCleanup]
         public static async Task ClassCleanup()
         {
-            await SharedLanguageHelperManager<ServerType>.Unregister(ServerType.NamespacePlusTestResolver);
+            await ServerWithNamespaceAndTestResolver.DisposeAsync();
         }
 
         [TestMethod]
@@ -208,7 +209,7 @@ namespace Bicep.LangServer.IntegrationTests
 
             var uri = DocumentUri.FromFileSystemPath(entryPoint);
 
-            var helper = await SharedLanguageHelperManager<ServerType>.Get(ServerType.NamespacePlusTestResolver);
+            var helper = await ServerWithNamespaceAndTestResolver.GetAsync();
 
             await helper.OpenFileOnce(this.TestContext, dataSet.Bicep, uri);
 
